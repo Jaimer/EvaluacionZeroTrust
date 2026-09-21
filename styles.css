@@ -1,0 +1,213 @@
+body {
+    font-family: Arial;
+    background: #f5f7fa;
+    margin: 20px;
+}
+.card {
+    background: #fff;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+}
+.q {
+    display: grid;
+    grid-template-columns: 1fr 70px;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.q select {
+    border: 2px solid transparent;
+}
+
+.q select.estado-0 {
+    border-color: #dc3545;
+}
+
+.q select.estado-1 {
+    border-color: #fd7e14;
+}
+
+.q select.estado-2 {
+    border-color: #ffc107;
+}
+
+.q select.estado-3 {
+    border-color: #0d6efd;
+}
+
+.q select.estado-4 {
+    border-color: #198754;
+}
+
+textarea {
+    width: 100%;
+}
+button {
+    padding: 10px;
+    margin: 5px;
+}
+.acciones {
+    margin-top: 30px;
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius:10px;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+
+.acciones button{
+    padding:12px 20px;
+    margin:5px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button#btnRespuestasAleatorias{
+    background:#6f42c1;
+    color:white;
+}
+
+button#btnCalcular{
+    background:#0066cc;
+    color:white;
+}
+
+button#btnExportarExcel{
+    background:#28a745;
+    color:white;
+}
+
+button#btnExportarPDF{
+    background:#dc3545;
+    color:white;
+}
+
+#irFinal{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#0066cc;
+    color:white;
+    border:none;
+    border-radius:50%;
+    width:60px;
+    height:60px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.layout{
+    display:flex;
+    gap:25px;
+    align-items:flex-start;
+}
+
+.contenido-principal{
+    flex:1;
+    min-width:0;
+}
+
+.panel-ayuda{
+    flex:1;
+    min-width:0;
+    position:sticky;
+    top:15px;
+    align-self:flex-start;
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+    max-height:90vh;
+    overflow-y:auto;
+    margin-top: 80px
+}
+
+.contenido-principal{
+
+    flex:1;
+
+    min-width:0;
+}
+
+#btnGuia{
+
+    position:fixed;
+
+    right:20px;
+
+    bottom:10px;
+
+    z-index:9999;
+
+    background:#0d6efd;
+
+    color:white;
+
+    border:none;
+
+    border-radius:50px;
+
+    padding:15px 20px;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+
+    transition:.3s;
+}
+
+#btnGuia:hover{
+
+    background:#0b5ed7;
+
+    transform:scale(1.05);
+}
+
+.oculto{
+
+    display:none;
+}
+
+.roadmap-item{
+
+    margin-bottom:20px;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    border-left:6px solid #ccc;
+
+    background:#fafafa;
+}
+
+.roadmap-item h3{
+    margin-top:0;
+}
+
+section#resultados {
+    display: none;
+}
+
+@media(max-width:1200px){
+
+    .layout{
+        flex-direction:column;
+    }
+
+    .panel-ayuda{
+
+        position:relative;
+
+        width:100%;
+
+        max-height:none;
+    }
+}

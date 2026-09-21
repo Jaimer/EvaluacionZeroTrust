@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Evaluación Zero Trust</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="layout">
+            <main class="contenido-principal">
+                <h1>Evaluación de Madurez Zero Trust</h1>
+                <div id="form"></div>
+
+                <div class="acciones">
+                    <button id="btnRespuestasAleatorias" onclick="generarRespuestasAleatorias()">
+                        🎲 
+                    </button>
+                    <button id="btnCalcular" onclick="calcular()">
+                        Calcular Madurez
+                    </button>
+
+                    <button id="btnExportarExcel" onclick="exportExcel()">
+                        Exportar Excel
+                    </button>
+
+                    <button id="btnExportarPDF" onclick="exportPDF()">
+                        Exportar PDF
+                    </button>
+                </div>
+            </main>
+            <aside class="panel-ayuda" id="panelAyuda">
+                <h2>Guía de Puntuación</h2>
+
+                <table class="tabla-leyenda">
+                    <thead>
+                        <tr>
+                            <th>Nivel</th>
+                            <th>Puntuación</th>
+                            <th style="width: 65%;">Descripción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>
+                                🔴 Traditional
+                            </td>
+
+                            <td>
+                                0
+                            </td>
+
+                            <td>
+                                El control no existe o no se encuentra implementado.
+                                No hay evidencia documental ni técnica.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                🟠 Inicial
+                            </td>
+
+                            <td>
+                                1
+                            </td>
+
+                            <td>
+                                El control ha sido definido o planificado.
+                                Existen procedimientos o proyectos en curso,
+                                pero la implementación es parcial o limitada.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                🟡 Implementado
+                            </td>
+
+                            <td>
+                                2
+                            </td>
+
+                            <td>
+                                El control está implementado en una parte importante
+                                del entorno, aunque todavía existen brechas o
+                                excepciones relevantes.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                🔵 Gestionado
+                            </td>
+
+                            <td>
+                                3
+                            </td>
+
+                            <td>
+                                El control está desplegado de forma consistente,
+                                monitorizado y gestionado mediante políticas y
+                                procesos definidos.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                🟢 Optimizado
+                            </td>
+
+                            <td>
+                                4
+                            </td>
+
+                            <td>
+                                El control está automatizado, monitoreado
+                                continuamente y se adapta dinámicamente al riesgo.
+                                Existen métricas, mejora continua y respuesta
+                                automática.
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+                <h3>Ejemplo práctico</h3>
+
+                <table class="tabla-leyenda">
+                    <thead>
+                        <tr>
+                            <th>Control</th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>MFA</td>
+                            <td>No existe</td>
+                            <td>Planeada</td>
+                            <td>Implementada parcialmente</td>
+                            <td>Más del 95% de cobertura</td>
+                            <td>MFA adaptativa basada en riesgo</td>
+                        </tr>
+
+                        <tr>
+                            <td>EDR</td>
+                            <td>No existe</td>
+                            <td>Piloto</td>
+                            <td>Cobertura parcial</td>
+                            <td>Cobertura completa</td>
+                            <td>Respuesta automática integrada</td>
+                        </tr>
+
+                        <tr>
+                            <td>ZTNA</td>
+                            <td>VPN tradicional</td>
+                            <td>Proyecto iniciado</td>
+                            <td>Protege aplicaciones críticas</td>
+                            <td>Protege la mayoría de accesos</td>
+                            <td>Acceso dinámico basado en riesgo</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </aside>
+        </div>
+        <section id="resultados">
+            <div id="dashboard" class="card">
+                <h2>Resultados</h2>
+                <div id="res"></div>
+                <canvas id="bar"></canvas>
+                <canvas id="radar"></canvas>
+            </div>
+            <div id="roadmap" class="card">
+                <h2>Roadmap de Mejora Zero Trust</h2>
+                <div id="roadmapContent"></div>
+            </div>
+        </section>
+        <button id="btnGuia" onclick="toggleGuia()">
+            📖 Guía
+        </button>
+        <!--<button id="irFinal" onclick="window.scrollTo(0,document.body.scrollHeight)">
+            ↓
+        </button>-->
+        <script>
+            const data={'Identidad': ['Todos los usuarios poseen identidades únicas y gestionadas centralmente', 'Existe integración con un proveedor de identidad corporativo (IdP)', 'Se aplica Single Sign-On (SSO) en las aplicaciones críticas', 'Las cuentas huérfanas se detectan y eliminan automáticamente', 'La MFA está habilitada para todos los usuarios', 'La MFA está habilitada para todos los administradores', 'Se utilizan mecanismos resistentes al phishing (FIDO2, Passkeys, Smart Cards)', 'La autenticación se adapta al nivel de riesgo del usuario', 'Se controla el acceso administrativo mediante PAM/PIM', 'Se implementan privilegios Just-In-Time (JIT)', 'Los privilegios elevados son auditados continuamente'], 'Dispositivos': ['Existe un inventario completo de dispositivos corporativos', 'Se identifican dispositivos BYOD', 'Existe inventario continuo de activos', 'Los dispositivos son evaluados antes de conceder acceso', 'Existe una solución EDR/XDR desplegada', 'Se verifica el cumplimiento de políticas de seguridad', 'Los dispositivos comprometidos son aislados automáticamente', 'Los dispositivos están gestionados por una plataforma MDM/UEM', 'Los parches críticos se aplican de forma centralizada', 'Se monitoriza continuamente la postura de seguridad del endpoint'], 'Redes': ['La red está segmentada por funciones o criticidad', 'Existe microsegmentación', 'Se restringen los movimientos laterales', 'Se utiliza ZTNA en lugar de VPN tradicional', 'El acceso a aplicaciones se concede según identidad y contexto', 'Se aplican políticas de acceso dinámicas', 'Todo el tráfico relevante es inspeccionado', 'Existe detección de comportamientos anómalos', 'La respuesta a incidentes de red está automatizada'], 'Aplicaciones y Workloads': ['Las aplicaciones están integradas con el sistema de identidad', 'Los accesos se revisan periódicamente', 'Existen controles basados en contexto y riesgo', 'Las aplicaciones críticas disponen de protección WAF o equivalente', 'Se gestionan las vulnerabilidades de forma continua', 'Las API tienen mecanismos de autenticación y autorización robustos', 'Existe integración de seguridad en el ciclo de desarrollo', 'Se realizan análisis automáticos de vulnerabilidades', 'Las cargas de trabajo cloud son monitorizadas continuamente'], 'Datos': ['Los datos están clasificados según sensibilidad', 'Existe etiquetado de información', 'La clasificación se realiza automáticamente', 'Los datos sensibles están cifrados en reposo', 'Los datos sensibles están cifrados en tránsito', 'Existe una solución DLP', 'Se controla quién accede a los datos', 'Se monitorizan descargas y comparticiones', 'Las políticas de acceso se adaptan al contexto y riesgo'], 'Visibilidad y Analítica': ['Existe centralización de logs', 'Se recopilan eventos de identidad', 'Se recopilan eventos de endpoints', 'Se recopilan eventos de red', 'Se recopilan eventos cloud', 'Existe SIEM corporativo', 'Se correlacionan eventos automáticamente', 'Se aplican modelos UEBA', 'Se detectan actividades sospechosas en tiempo real', 'Se mide el riesgo de usuarios', 'Se mide el riesgo de dispositivos', 'Se mide la exposición de activos críticos'], 'Automatización y Orquestación': ['Existen playbooks automatizados', 'Los dispositivos comprometidos pueden aislarse automáticamente', 'Las cuentas comprometidas pueden bloquearse automáticamente', 'Las alertas se enriquecen automáticamente', 'Las políticas se aplican de forma automática', 'Existe validación automática de cumplimiento', 'Se generan informes ejecutivos de manera automática', 'Las métricas impulsan revisiones periódicas', 'Se ajustan automáticamente las políticas según el riesgo', 'Existe integración entre SIEM, SOAR y XDR']};
+            
+            const c=document.getElementById('form');
+            
+            Object.entries(data).forEach(([d,qs])=>{
+                let h=`<div class='card'><h2>${d}</h2>`;
+                qs.forEach(q=>{h+=`<div class='q'><span>${q}</span><select data-domain='${d}' data-question='${q}' onchange='actualizarEstado(this)'><option value='0'>0</option><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option><option value='4'>4</option></select></div>`});h+='</div>';c.innerHTML+=h;
+            });
+
+            function actualizarEstado(control){
+                control.classList.remove('estado-0','estado-1','estado-2','estado-3','estado-4');
+                control.classList.add(`estado-${control.value}`);
+            }
+
+            let bc,rc;
+            function calcular(){let r={};for(let d in data){
+                document.getElementById("resultados").style.display="block";
+                let s=[...document.querySelectorAll(`[data-domain="${d}"]`)].map(x=>+x.value);
+                r[d]=s.reduce((a,b)=>a+b,0)/s.length;
+                generarRoadmap(r);
+                document.getElementById("panelAyuda").classList.add("oculto");
+                document.getElementById("resultados").scrollIntoView({behavior:"smooth"});
+            }
+            let vals=Object.values(r);
+            let pct=(vals.reduce((a,b)=>a+b,0)/(4*vals.length))*100;
+            let nivel=pct<25?'Traditional':pct<50?'Initial':pct<75?'Advanced':'Optimal';document.getElementById('res').innerHTML=`<b>${pct.toFixed(1)}%</b> - ${nivel}`;
+            if(bc)bc.destroy();
+            if(rc)rc.destroy();
+            
+            
+            bc=new Chart(document.getElementById('bar'),{type:'bar',data:{labels:Object.keys(r),datasets:[{label:'Madurez',data:vals}]} ,options:{scales:{y:{min:0,max:4}}}});
+            
+            rc=new Chart(document.getElementById('radar'),{type:'radar',data:{labels:Object.keys(r),datasets:[{label:'Madurez',data:vals}]} ,options:{scales:{r:{min:0,max:4}}}});}function exportExcel(){let rows=[];document.querySelectorAll('select').forEach(s=>rows.push({Dominio:s.dataset.domain,Pregunta:s.dataset.question,Puntuacion:s.value}));
+            
+            let ws=XLSX.utils.json_to_sheet(rows);
+            let wb=XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb,ws,'ZT');
+            XLSX.writeFile(wb,'ZeroTrustAssessment.xlsx');}
+            
+            async function exportPDF(){
+                const {jsPDF}=window.jspdf;
+                let cv=await html2canvas(document.getElementById('dashboard',{scale:2, useCORS:true}));
+                let pdf=new jsPDF("p","mm","a4");
+                const pdfWidth = 190;
+                const pdfHeight =(cv.height * pdfWidth) / cv.width;
+                pdf.addImage(cv.toDataURL('image/png'),'PNG',10,10,pdfWidth,pdfHeight);
+                pdf.addPage();
+                pdf.setFontSize(18);
+                //PAGINA 2 - ROADMAP
+                pdf.text("Roadmap de Mejora",15,15);
+                const roadmapCanvas = await html2canvas(document.getElementById("roadmap"),{scale: 2});
+                const roadmapImg = roadmapCanvas.toDataURL("image/png");
+                const roadmapHeight = roadmapCanvas.height * 190 / roadmapCanvas.width;
+                pdf.addImage(roadmapImg,"PNG",10,25,190,roadmapHeight);
+
+                pdf.save('ZeroTrustAssessment.pdf');
+            }
+
+            function toggleGuia(){
+                const panel = document.getElementById("panelAyuda");
+                panel.scrollIntoView({behavior:"smooth"});
+
+                if(window.innerWidth <= 1200){
+                    return;
+                }
+
+                if(panel.classList.contains("oculto")){
+                    panel.classList.remove("oculto");
+                }else{
+                    panel.classList.add("oculto");
+                }
+            }
+
+            function generarRespuestasAleatorias(){
+
+                const opciones =
+                    [1,1,2,2,2,3,3,4];
+
+                document
+                    .querySelectorAll("select")
+                    .forEach(control => {
+
+                        const valor =
+                            opciones[
+                                Math.floor(
+                                    Math.random() *
+                                    opciones.length
+                                )
+                            ];
+
+                        control.value = valor;
+
+                        actualizarEstado(
+                            control
+                        );
+
+                    });
+
+            }
+
+            const roadmapRecomendaciones = {
+                "Identidad": {
+                    prioridad: "Alta",
+                    acciones: [
+                        "Implementar MFA para todos los usuarios",
+                        "Adoptar autenticación resistente al phishing",
+                        "Implementar PAM/PIM para accesos privilegiados",
+                        "Habilitar Conditional Access basado en riesgo"
+                    ]
+                },
+
+                "Dispositivos": {
+                    prioridad: "Alta",
+                    acciones: [
+                        "Inventariar todos los dispositivos",
+                        "Implementar MDM/UEM",
+                        "Desplegar EDR/XDR",
+                        "Automatizar validación de compliance"
+                    ]
+                },
+
+                "Redes": {
+                    prioridad: "Alta",
+                    acciones: [
+                        "Implementar segmentación",
+                        "Reducir uso de VPN tradicional",
+                        "Adoptar ZTNA",
+                        "Aplicar microsegmentación"
+                    ]
+                },
+
+                "Aplicaciones y Workloads": {
+                    prioridad: "Media",
+                    acciones: [
+                        "Integrar aplicaciones con IAM",
+                        "Implementar SSO",
+                        "Incorporar DevSecOps",
+                        "Fortalecer seguridad API"
+                    ]
+                },
+
+                "Datos": {
+                    prioridad: "Alta",
+                    acciones: [
+                        "Clasificar información",
+                        "Aplicar etiquetado automático",
+                        "Implementar DLP",
+                        "Controlar acceso basado en sensibilidad"
+                    ]
+                },
+
+                "Visibilidad y Analítica": {
+                    prioridad: "Media",
+                    acciones: [
+                        "Centralizar logs",
+                        "Integrar SIEM",
+                        "Implementar UEBA",
+                        "Medir exposición y riesgo"
+                    ]
+                },
+
+                "Automatización y Orquestación": {
+                    prioridad: "Media",
+                    acciones: [
+                        "Implementar playbooks SOAR",
+                        "Automatizar respuesta a incidentes",
+                        "Integrar SIEM y XDR",
+                        "Automatizar reportes ejecutivos"
+                    ]
+                }
+
+            };
+            function generarRoadmap(resultados){
+                let html = "";
+
+                const dominiosOrdenados =
+                    Object.entries(resultados)
+                    .sort((a,b)=>a[1]-b[1]);
+
+                dominiosOrdenados.forEach(([dominio,score])=>{
+
+                    let criticidad;
+
+                    if(score < 1){
+
+                        criticidad =
+                            "🔴 Crítico";
+
+                    }
+                    else if(score < 2){
+
+                        criticidad =
+                            "🟠 Prioridad Alta";
+
+                    }
+                    else if(score < 3){
+
+                        criticidad =
+                            "🟡 Prioridad Media";
+
+                    }
+                    else{
+
+                        criticidad =
+                            "🟢 Mantener y Optimizar";
+
+                    }
+
+                    html += `
+                    <div class="roadmap-item">
+
+                        <h3>
+                            ${criticidad}
+                            - ${dominio}
+                            (${score.toFixed(2)})
+                        </h3>
+
+                        <ul>
+                    `;
+
+                    roadmapRecomendaciones[
+                        dominio
+                    ].acciones.forEach(accion=>{
+
+                        html += `
+                            <li>${accion}</li>
+                        `;
+
+                    });
+
+                    html += `
+                        </ul>
+                    </div>
+                    `;
+
+                });
+
+                document.getElementById(
+                    "roadmapContent"
+                ).innerHTML = html;
+            }
+        </script>
+    </body>
+</html>
